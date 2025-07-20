@@ -1,146 +1,95 @@
+-- SHAMZ SCRIPT GUI
 
---[[
-    🔥 Shamz Script | Legend Of Speed
-    Author: Shamz Studio
-    GUI Style: Transparent, Premium Rayfield UI
---]]
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("🔥 Shamz Script | Legend Of Speed", "DarkTheme")
 
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+-- HOME TAB
+local Home = Window:NewTab("Home")
+local HomeSection = Home:NewSection("Main")
 
-local Window = Rayfield:CreateWindow({
-    Name = "Shamz Script | Legend of Speed",
-    LoadingTitle = "Shamz Script",
-    LoadingSubtitle = "by Shamz Studio",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "ShamzScriptData",
-        FileName = "LegendOfSpeed"
-    },
-    Discord = {
-        Enabled = false,
-    },
-    KeySystem = false
-})
+HomeSection:NewButton("Infinite Jump Toggle", "Enable infinite jumps", function()
+    local Player = game:GetService("Players").LocalPlayer
+    local UIS = game:GetService("UserInputService")
+    UIS.JumpRequest:Connect(function()
+        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    end)
+end)
 
--- Home Tab
-local HomeTab = Window:CreateTab("🏠 Home", 4483362458)
+HomeSection:NewSlider("WalkSpeed", "Adjust speed", 500, 16, function(s)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
+end)
 
-HomeTab:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 500},
-    Increment = 5,
-    Suffix = "Speed",
-    CurrentValue = 16,
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-    end,
-})
+HomeSection:NewSlider("JumpPower", "Adjust jump power", 300, 50, function(s)
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = s
+end)
 
-HomeTab:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 300},
-    Increment = 5,
-    Suffix = "Power",
-    CurrentValue = 50,
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
-    end,
-})
+HomeSection:NewDropdown("Select Area", "Teleport to area", {"Starter World", "Snow City", "Magma City", "Legends Highway"}, function(area)
+    local areas = {
+        ["Starter World"] = Vector3.new(-559, 0, 417),
+        ["Snow City"] = Vector3.new(-858, 0.5, 2170),
+        ["Magma City"] = Vector3.new(1707, 0.5, 4331),
+        ["Legends Highway"] = Vector3.new(3594, 215, 7274),
+    }
+    game.Players.LocalPlayer.Character:MoveTo(areas[area])
+end)
 
-HomeTab:CreateButton({
-    Name = "Enable Infinite Jump",
-    Callback = function()
-        game:GetService("UserInputService").JumpRequest:Connect(function()
-            game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-        end)
+-- AUTO FARM TAB
+local FarmTab = Window:NewTab("Auto Farm")
+local FarmSection = FarmTab:NewSection("Orb & Gem & Hoop Farming")
+
+FarmSection:NewToggle("Auto Orb", "Collect red orbs", function(state)
+    _G.AutoOrbs = state
+    while _G.AutoOrbs do wait()
+        game.ReplicatedStorage.rEvents.orbEvent:FireServer("collectOrb","Red Orb","City")
     end
-})
+end)
 
--- Auto Farm Tab
-local FarmTab = Window:CreateTab("🌾 Auto Farm", 4483362125)
+FarmSection:NewToggle("Auto Gem", "Collect gems", function(state)
+    _G.AutoGems = state
+    while _G.AutoGems do wait()
+        game.ReplicatedStorage.rEvents.orbEvent:FireServer("collectOrb","Gem","City")
+    end
+end)
 
-FarmTab:CreateToggle({
-    Name = "Auto Orb",
-    CurrentValue = false,
-    Callback = function(state)
-        _G.AutoOrb = state
-        while _G.AutoOrb do wait()
-            game.ReplicatedStorage.rEvents.orbEvent:FireServer("collectOrb", "Red Orb", "City")
-        end
-    end,
-})
-
-FarmTab:CreateToggle({
-    Name = "Auto Gem",
-    CurrentValue = false,
-    Callback = function(state)
-        _G.AutoGem = state
-        while _G.AutoGem do wait()
-            game.ReplicatedStorage.rEvents.orbEvent:FireServer("collectOrb", "Gem", "City")
-        end
-    end,
-})
-
-FarmTab:CreateToggle({
-    Name = "Auto Hoop",
-    CurrentValue = false,
-    Callback = function(state)
-        _G.AutoHoop = state
-        while _G.AutoHoop do wait()
-            for _, hoop in pairs(workspace.Hoops:GetChildren()) do
-                if hoop:IsA("BasePart") then
-                    hoop.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
-                end
+FarmSection:NewToggle("Auto Hoop", "Collect hoops", function(state)
+    _G.AutoHoops = state
+    while _G.AutoHoops do wait()
+        for _, hoop in ipairs(workspace.Hoops:GetChildren()) do
+            if hoop:IsA("BasePart") then
+                hoop.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
             end
         end
-    end,
-})
-
-FarmTab:CreateToggle({
-    Name = "Auto Rebirth",
-    CurrentValue = false,
-    Callback = function(state)
-        _G.AutoRebirth = state
-        while _G.AutoRebirth do wait(1)
-            game.ReplicatedStorage.rEvents.rebirthEvent:FireServer("rebirthRequest")
-        end
-    end,
-})
-
--- Teleports Tab
-local TeleTab = Window:CreateTab("🌍 Teleports", 4483362723)
-
-local areas = {
-    ["Spawn City"] = Vector3.new(-559, 0, 417),
-    ["Snow City"] = Vector3.new(-858, 0.5, 2170),
-    ["Magma City"] = Vector3.new(1707, 0.5, 4331),
-    ["Legends Highway"] = Vector3.new(3594, 215, 7274),
-}
-
-for name, pos in pairs(areas) do
-    TeleTab:CreateButton({
-        Name = name,
-        Callback = function()
-            game.Players.LocalPlayer.Character:MoveTo(pos)
-        end
-    })
-end
-
--- Misc Tab
-local MiscTab = Window:CreateTab("⚙️ Misc", 4483361860)
-
-MiscTab:CreateKeybind({
-    Name = "Toggle GUI",
-    CurrentKeybind = "RightControl",
-    HoldToInteract = false,
-    Callback = function()
-        Rayfield:Toggle()
-    end,
-})
-
-MiscTab:CreateButton({
-    Name = "Destroy GUI",
-    Callback = function()
-        game:GetService("CoreGui").Rayfield:Destroy()
     end
-})
+end)
+
+FarmSection:NewToggle("Auto Rebirth", "Rebirth automatically", function(state)
+    _G.AutoRebirth = state
+    while _G.AutoRebirth do wait(1)
+        game.ReplicatedStorage.rEvents.rebirthEvent:FireServer("rebirthRequest")
+    end
+end)
+
+-- TELEPORT TAB
+local Tele = Window:NewTab("Teleports")
+local TeleSection = Tele:NewSection("Locations")
+
+TeleSection:NewButton("Spawn City", "Teleport", function()
+    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(-559, 0, 417))
+end)
+TeleSection:NewButton("Snow City", "Teleport", function()
+    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(-858, 0.5, 2170))
+end)
+TeleSection:NewButton("Magma City", "Teleport", function()
+    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(1707, 0.5, 4331))
+end)
+TeleSection:NewButton("Legends Highway", "Teleport", function()
+    game.Players.LocalPlayer.Character:MoveTo(Vector3.new(3594, 215, 7274))
+end)
+
+-- MISC TAB
+local Misc = Window:NewTab("Misc")
+local MiscSection = Misc:NewSection("Other")
+
+MiscSection:NewKeybind("Toggle GUI", "Hide/show with key", Enum.KeyCode.RightControl, function()
+    Library:ToggleUI()
+end)
